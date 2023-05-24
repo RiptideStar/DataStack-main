@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+
+if [ $# -ne 1 ] ; then
+    echo "Usage: $SCRIPT_NAME <dataset1>"
+    exit 1
+fi
+
+
+$SCRIPT_DIR/cbq --dataset=$1 - <<'EOF'
+select table_id as `Tables in $DATASET`, utils.formatInt(row_count) as `Count`
+from $DATASET.__TABLES__
+order by 
+  row_count desc;
+EOF

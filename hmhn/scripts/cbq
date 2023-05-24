@@ -1,0 +1,119 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# make sure this is only run from inside the USA
+if ! curl --no-progress-meter https://ipinfo.io/$(curl --no-progress-meter ifconfig.me) | grep -q -E '"country": "US"' ; then
+  echo "Error:  You are not running from within the USA"
+  exit 1
+fi
+
+
+SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+
+DATASET=
+PROJECT_DEFAULT=hmh-carenostics-dev
+PROJECT=$PROJECT_DEFAULT
+SHOW_USAGE=0
+GENERATE_SCRIPT=0
+BQ_OPTIONS=
+
+VF=/tmp/vars.$$
+echo 'export DEBUG=false'>  $VF
+
+VARS=()
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --project=*|--s=*)
+        PROJECT="${1#*=}"
+	echo "export PROJECT=$PROJECT" >> $VF
+        shift
+        ;;
+    --debug|-d)
+        echo "export DEBUG=true" >> $VF
+        shift
+        ;;
+    --dataset=*)
+        DATASET="${1#*=}"
+	echo "export DATASET=$DATASET" >> $VF
+        shift
+        ;;
+    --generate-script)
+	GENERATE_SCRIPT=1
+	shift
+	;;
+    --bq-options=*)
+	BQ_OPTIONS="${1#*=}"
+	shift
+	;;
+    -h | --help | -\? | --?)
+        SHOW_USAGE=1
+        break
+        ;;
+    --*=*)
+      export ${1#--}
+      shift
+      ;;
+    --*)
+      echo "Unrecognized option: $1 (use --help)"
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+
+if [ $# -eq 0 ] ; then
+    SHOW_USAGE=1
+fi
+
+
+if [ $SHOW_USAGE -eq 1 ] ; then
+    echo "Usage: $SCRIPT_NAME --project=<project> --dataset=<dataset> --variable=value --debug ...  file.sql|- ..."
+    echo 'A simple wrapper around "bq". Runs "bq", for each file,  as'
+    echo '   bq query  --headless=true  [--dataset=<dataset>]  --use_legacy_sql=false < script.sql'
+    echo 'after doing $VARIABLE replacement. Variables come from the environment and command line args'
+    echo
+    echo "--dataset=<dataset>   Sets the default dataset for bq.  Also implies --DATASET=<dataset>."
+    echo "--project=<project>   Sets the default project for bq. Default is $PROJECT_DEFAULT.  Also implies --PROJECT=<project>."
+    echo "--bq-options='....'   Options to add to the bq command line"
+    echo "--generate-script     Generate a single script that can be run at bigquery"
+    echo "--debug               Same as --DEBUG=true.  If not specified, implies --DEBUG=false"
+    echo "--help|-h|-?|--?      Show this help"
+    echo 'files ...             List of query files. Use "-" to read from stdin.  Inside files, $VARIABLE is replaced'
+    echo '                      Variable definitions come from the command line and environment variables'
+    echo
+    echo 'See https://carenostics.atlassian.net/l/cp/zKtMBtgB for "bq" installation/configuration instructions'
+  exit 0
+fi
+
+
+# expand all variable in the file use bash file expansion
+for SQL in "$@"
+do
+  if [ $# -ne 1 ] ; then
+    echo "---- Process $SQL ----"
+  fi
+
+  if [ $SQL == "-" ] ; then
+      cat > $VF.stdin
+      SQL=$VF.stdin
+  fi
+     
+  #(source $VF; envsubst < $SQL)
+  # -quiet=true
+  if [ $GENERATE_SCRIPT -eq 1 ] ; then
+      echo "-- from $SQL --"
+      echo "begin"
+      (source $VF; envsubst < $SQL)
+      echo "end;"
+      echo
+  else
+    (source $VF; envsubst < $SQL) | bq query --headless=true  --dataset_id=$DATASET  --use_legacy_sql=false --apilog=/dev/null $BQ_OPTIONS
+  fi
+done
+
+rm -f $VF $VF.stdin

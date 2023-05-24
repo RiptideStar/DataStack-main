@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+
+if [ $# -ne 2 ] ; then
+    echo "Usage: $SCRIPT_NAME <dataset1> <dataset2>"
+    exit 1
+fi
+
+$(dirname "${BASH_SOURCE[0]}")/cbq --S1=$1 --S2=$2 - <<'EOF'
+select 
+  s1.label `Label`, 
+  utils.formatInt(s1.count) `$S1 Total`, 
+  utils.formatPct(s1.percent) `$S1 %`, 
+  utils.formatInt(s2.count) `$S2 Total`, 
+  utils.formatPct(s2.percent) `$S2 %`,
+  utils.formatInt(utils.deltaAbsolute(s2.count, s1.count)) `Delta`,
+  utils.formatPct(utils.deltaPercent(s2.count, s1.count)) `Delta %`
+from 
+  $S1.summary s1 left outer join $S2.summary s2 using(label)
+order by s1.sort_order ;
+EOF

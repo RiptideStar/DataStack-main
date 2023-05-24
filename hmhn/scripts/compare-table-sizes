@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}")
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+
+if [ $# -ne 2 ] ; then
+    echo "Usage: $SCRIPT_NAME <dataset1> <dataset2>"
+    exit 1
+fi
+
+
+$SCRIPT_DIR/cbq --S1=$1 --S2=$2 - <<'EOF'
+select coalesce(s1.table_id, s2.table_id) as `Table`, 
+       utils.formatInt(s1.row_count) as `$S1`,
+       utils.formatInt(s2.row_count) as `$S2`,
+       utils.formatInt(utils.deltaAbsolute(s2.row_count, s1.row_count)) as `Delta`,
+       utils.formatPct(utils.deltaPercent(s2.row_count, s1.row_count)) as `Delta %`
+from 
+  $S1.__TABLES__ s1
+  full outer join  $S2.__TABLES__ s2 using (table_id)
+order by 
+  coalesce(s1.row_count, s2.row_count) desc;
+EOF

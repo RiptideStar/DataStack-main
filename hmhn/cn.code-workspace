@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "scripts/python-scripts"
+		},
+		{
+			"path": "carenostics_ml_bigquery"
+		}
+	],	
+	"settings": {
+		"cSpell.words": [
+			"carenostics",
+			"floatfmt",
+			"Greenberg",
+			"hmhn",
+			"intfmt"
+		],
+		"files.exclude": {
+			"**/__pycache__": true,
+			"*~": true,
+		}
+	}
+}

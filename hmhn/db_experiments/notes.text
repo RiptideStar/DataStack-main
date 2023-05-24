@@ -1,0 +1,80 @@
+cohort
+  entity_id (pk)
+
+pat_id_to_entity_id
+   entity_id (pk),
+   patient_id 
+
+-- patent specific ---
+
+patient
+  pat_id (pk)
+
+pat_enc
+  pat_enc_csn_id (pk)
+  pat_id
+
+order_med
+ order_med_id (PK)
+ pat_id
+ pat_enc_csn_id
+
+pat_enc_curr_meds
+  current_med_id -- this is not unique 
+  pat_id
+  pat_enc_csn_id 
+
+
+-- not patient specific
+
+clarity_medication
+  medication_id (PK)
+
+rxnorm_codes
+  medication_id -- not unique
+
+rx_med_two
+  medication_id (PK)
+
+zc_admin_route
+  med_route_c (PK)
+
+
+
+
+create table pat_id_to_entity_id (
+
+create table patient as select * from "{sourceSchema}"."PATIENT"  ;
+create table patient_race as select * from "{sourceSchema}"."PATIENT_RACE"  ;
+create table medical_hx as select * from "{sourceSchema}"."MEDICAL_HX"  ;
+
+create table order_med as select * from "{sourceSchema}"."ORDER_MED"  ;
+create table order_proc as select * from "{sourceSchema}"."ORDER_PROC"  ;
+create table order_results as select * from "{sourceSchema}"."ORDER_RESULTS"  ;
+create table pat_enc as select * from "{sourceSchema}"."PAT_ENC"  ;
+create table pat_enc_curr_meds as select * from "{sourceSchema}"."PAT_ENC_CURR_MEDS"  ;
+create table pat_enc_dx as select * from "{sourceSchema}"."PAT_ENC_DX"  ;
+create table pat_enc_hsp as select * from "{sourceSchema}"."PAT_ENC_HSP"  ;
+create table pat_pcp as select * from "{sourceSchema}"."PAT_PCP"  ;
+create table problem_list  as select * from "{sourceSchema}"."PROBLEM_LIST"  ;
+create table ip_flwsht_rec as select * from "{sourceSchema}"."IP_FLWSHT_REC"  ;
+create table clarity_component as select * from "{sourceSchema}"."CLARITY_COMPONENT"  ;
+create table clarity_edg as select * from "{sourceSchema}"."CLARITY_EDG"  ;
+create table clarity_medication as select * from "{sourceSchema}"."CLARITY_MEDICATION"  ;
+create table clarity_ser_2 as select * from "{sourceSchema}"."CLARITY_SER_2"  ;
+create table clarity_ser_netaff as select * from "{sourceSchema}"."CLARITY_SER_NETAFF"  ;
+create table daily_byte_sized_report as select * from "{sourceSchema}"."DAILY_BYTE_SIZED_REPORT"  ;
+create table hsp_acct_dx_list as select * from "{sourceSchema}"."HSP_ACCT_DX_LIST"  ;
+create table ip_flwsht_meas as select * from "{sourceSchema}"."IP_FLWSHT_MEAS"  ;
+create table rxnorm_codes as select * from "{sourceSchema}"."RXNORM_CODES"  ;
+create table rx_med_two as select * from "{sourceSchema}"."RX_MED_TWO"  ;
+create table zc_admin_route as select * from "{sourceSchema}"."ZC_ADMIN_ROUTE"  ;
+create table zc_disp_enc_type as select * from "{sourceSchema}"."ZC_DISP_ENC_TYPE"  ;
+create table zc_ethnic_group as select * from "{sourceSchema}"."ZC_ETHNIC_GROUP"  ;
+create table zc_net_affil_level as select * from "{sourceSchema}"."ZC_NET_AFFIL_LEVEL"  ;
+create table zc_patient_race as select * from "{sourceSchema}"."ZC_PATIENT_RACE"  ;
+create table zc_pat_class as select * from "{sourceSchema}"."ZC_PAT_CLASS"  ;
+create table zc_sex as select * from "{sourceSchema}"."ZC_SEX"  ;
+create table zc_marital_status as select * from "{sourceSchema}"."ZC_MARITAL_STATUS"  ;
+
+

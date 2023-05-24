@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+
+if [ $# -eq 0 ] ; then
+    echo "Usage: $SCRIPT_NAME <dataset1> ... "
+    exit 1
+fi
+
+for DS in "$@"
+do
+    $SCRIPT_DIR/cbq --DSN=$DS - <<'EOF'
+      drop schema $DSN cascade ;
+EOF
+done
+
+

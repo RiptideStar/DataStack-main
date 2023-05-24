@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+
+$SCRIPT_DIR/cbq - <<'EOF'
+  select schema_name,creation_time from INFORMATION_SCHEMA.SCHEMATA order by schema_name;
+EOF
+
+
